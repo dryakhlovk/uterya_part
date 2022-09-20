@@ -1,0 +1,67 @@
+    <?php
+      $data = $_POST;
+
+      if( isset($data['do_search']) )
+      {
+        $search = true;
+        echo '<script type="text/javascript">
+        <!--
+          document.getElementById("buttX").style.display = "inline-block";
+        -->
+        </script>';
+      }
+
+      if( isset($data['undo_search']) )
+      {
+        $search = false;
+        echo '<script type="text/javascript">
+        <!--
+          document.getElementById("buttX").style.display = "none";
+        -->
+        </script>';
+      }
+
+      if( isset($data['do_search']) )
+      {
+        $messages = R::getall( 'SELECT * FROM messages WHERE
+            (name LIKE ?) AND
+            (lostfound LIKE ?) AND
+            (whatwho LIKE ?) AND
+            (description LIKE ?) AND
+            (date_when >= ?) AND
+            (date_when <= ?) AND
+            (location LIKE ?)
+          ORDER BY public_time DESC',
+          array('%'.$data['yourname_s'].'%',
+            '%'.$data['lostfound_s'].'%',
+            '%'.$data['whatwho_s'].'%',
+            '%'.$data['description_s'].'%',
+            $data['when_from'],
+            $data['when_to'],
+            '%'.$data['location_s'].'%')
+        );
+      }
+
+      if( !isset($data['do_search']) || isset($data['undo_search']) )
+      {
+        $messages = R::getAll( 'SELECT * FROM messages ORDER BY public_time DESC' );
+      }
+
+      foreach ( $messages as $mess )
+      {
+        $d = explode("-", $mess['date_when']);
+        $date = $d[2] . '.' . $d[1] . '.' . $d[0]; // date_when в формате дд.мм.гггг
+        $bodyOfMess = $date . '; ' .
+          $mess['lostfound'] . ': ' .
+          $mess['whatwho'] . '; ' .
+          $mess['location'] . '; ' .
+          $mess['description'] ;
+        ?>
+        <a href="message.php?id=<?php echo $mess['id']; ?>" target="_blank">
+          <div class="main_message">
+            <?php echo $bodyOfMess; ?>
+          </div>
+        </a>
+        <?php
+      }
+      ?>
